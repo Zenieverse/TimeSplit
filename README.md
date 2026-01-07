@@ -48,3 +48,47 @@ Gemini 3 is used to:
 - Hosted via AI Studio / static hosting
 
 ## 📂 Repository Structure
+/prompts # Gemini agent prompts
+/frontend # UI components
+/simulator # Timeline logic
+README.md
+
+## 🎯 Future Improvements
+- Multiplayer futures
+- Habit-based reinforcement
+- Education & career planning modes
+
+## 📜 License
+MIT
+
+Project Name
+TimeSplit – Play Against Your Future Self
+Tagline
+Your decisions don’t disappear. They argue back.
+Inspiration
+Most productivity apps tell users what to do next. TimeSplit asks a deeper question:
+“Who do these decisions turn you into?”
+We wanted to use Gemini 3 not as a helper—but as a simulator of identity, time, and consequence.
+What It Does
+TimeSplit is an interactive game where players make high-impact life decisions and then confront multiple AI-generated future versions of themselves. Each future self represents a different timeline shaped by those decisions and behaves as an autonomous agent with memory, goals, and emotional perspective.
+Players can debate, negotiate, or challenge these future selves to explore tradeoffs, regrets, and opportunities—turning long-term thinking into a playable experience.
+How We Built It (Gemini 3 Integration)
+Gemini 3 powers the entire simulation layer:
+Multi-Agent Generation: Gemini 3 creates multiple future-self agents from the same user profile, each with distinct values, tone, and priorities.
+Long-Term Causal Reasoning: Decisions compound realistically over simulated years instead of producing instant outcomes.
+Persistent Memory: Each agent remembers prior decisions and conversations, evolving across sessions.
+Dynamic Narrative Events: Gemini 3 generates personalized life events, conflicts, and opportunities unique to each timeline.
+Without Gemini 3’s reasoning depth and context handling, this application would not be possible.
+Challenges We Faced
+Preventing future selves from converging into similar personalities
+Maintaining logical consistency across long timelines
+Balancing narrative freedom with game structure
+We solved this by isolating agent memory states and enforcing distinct value systems per timeline.
+Accomplishments We’re Proud Of
+Turning self-reflection into gameplay
+Using Gemini 3 as a world simulator, not a chatbot
+Creating replayable, deeply personal experiences
+What’s Next
+Multiplayer timeline comparison
+Habit tracking tied to future simulations
+Educational and career-planning modes
