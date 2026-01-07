@@ -1,0 +1,5 @@
+{
+  "name": "TimeSplit: Future Self Simulator",
+  "description": "An interactive multi-agent simulation where you chat with your future selves (1, 5, and 20 years ahead) based on your current life decisions.",
+  "requestFramePermissions": []
+}
