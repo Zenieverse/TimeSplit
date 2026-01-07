@@ -8,7 +8,9 @@ This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/drive/1zMMzb7iTmiAPtJgShUUNT1q1MhTyZ4PX
 
-or 
+or https://poe.com/TimeSplit
+
+Demo Video: 
 
 ## Run Locally
 
@@ -92,3 +94,29 @@ What’s Next
 Multiplayer timeline comparison
 Habit tracking tied to future simulations
 Educational and career-planning modes
+
+TimeSplit is powered end-to-end by the Gemini 3 API, using it as a multi-agent simulation engine rather than a simple chatbot. Gemini 3’s advanced reasoning and long-context capabilities are used to model multiple future versions of the same player, each with distinct personalities, priorities, and memories derived from the user’s past decisions.
+Gemini 3 generates:
+Future Self Agents – Each agent represents a plausible future timeline (e.g., financially successful but burned out, balanced but slower growth). These agents persist across sessions and evolve as new decisions are made.
+Causal Reasoning Chains – Gemini 3 evaluates how player decisions compound over time, producing believable long-term consequences rather than instant feedback.
+Interactive Dialogues & Negotiations – Players can debate their future selves, ask “why” certain outcomes occurred, or challenge assumptions, with Gemini 3 maintaining consistent internal logic.
+Dynamic Game Events – Gemini 3 creates unexpected life events (opportunities, crises, tradeoffs) tailored to each timeline, making every playthrough unique.
+Gemini 3 is central to the experience: without its multi-perspective reasoning, memory handling, and narrative intelligence, TimeSplit would not function as a game. The AI is not a helper—it is the world, the opponents, and the future.
+🧩 Core Features
+Multi-agent Gemini 3 simulation
+Timeline branching & convergence
+Visual “decision tree” of futures
+Chat + strategy gameplay loop
+Replayable & deeply personal
+
+TimeSplit — Play Against Your Future Self
+Category: Game + Productivity + AI Simulation
+What makes it hot: Gemini 3 simulates your future decisions and turns them into a playable opponent.
+What It Is
+TimeSplit is a strategic simulation game where players make real-life decisions (career, money, habits, ethics, learning). Gemini 3 generates multiple future versions of the player (1 year, 5 years, 20 years later) based on their choices.
+Each “future self” becomes an AI agent with:
+Its own goals, regrets, confidence level
+Memory of past decisions
+Dynamic dialogue and strategy
+The twist:
+You must negotiate, debate, or compete against your future selves to unlock achievements, timelines, or optimal paths.
