@@ -85,7 +85,7 @@ Educational and career-planning modes
 TimeSplit is an AI-powered decision simulation game built using the **Gemini 3 API**. It allows users to interact with multiple future versions of themselves generated from their own decisions.
 
 ## 🚀 Live Demo
-👉 https://your-public-demo-link
+👉 https://m.youtube.com/watch?v=qJDdLQCcV40
 
 ## 🧠 Powered by Gemini 3
 Gemini 3 is used to:
