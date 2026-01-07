@@ -9,7 +9,8 @@ import ChatInterface from './components/ChatInterface';
 import StatsTracker from './components/StatsTracker';
 
 const App: React.FC = () => {
-  const [step, setStep] = useState<'onboarding' | 'simulating' | 'active' | 'summary'>('onboarding');
+  const [step, setStep] = useState<'onboarding' | 'active' | 'summary'>('onboarding');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [decisions, setDecisions] = useState<LifeDecision[]>([]);
   const [agents, setAgents] = useState<FutureAgent[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -20,7 +21,9 @@ const App: React.FC = () => {
 
   const handleOnboardingComplete = async (userDecisions: LifeDecision[]) => {
     setDecisions(userDecisions);
-    setStep('simulating');
+    setIsProcessing(true);
+    setStep('active'); // Go to main UI immediately
+    
     try {
       // Step 1: Generate the agent data (Text only for speed)
       const generated = await generateAgents(userDecisions);
@@ -28,7 +31,7 @@ const App: React.FC = () => {
       
       setAgents(generated);
       setActiveAgentId(generated[0].id);
-      setStep('active'); // Transition to UI immediately
+      setIsProcessing(false);
 
       // Step 2: Kick off background image generation for each agent
       generated.forEach(async (agent) => {
@@ -46,11 +49,12 @@ const App: React.FC = () => {
       console.error(err);
       alert("Temporal instability detected. Please retry.");
       setStep('onboarding');
+      setIsProcessing(false);
     }
   };
 
   const handleSendMessage = async (text: string) => {
-    if (!text.trim() || isTyping) return;
+    if (!text.trim() || isTyping || isProcessing) return;
     const userMsg: Message = { id: Date.now().toString(), sender: 'user', content: text, timestamp: Date.now() };
     setMessages(prev => [...prev, userMsg]);
     setIsTyping(true);
@@ -68,14 +72,15 @@ const App: React.FC = () => {
   };
 
   const handleFinish = async () => {
-    setStep('simulating');
+    setIsProcessing(true);
     try {
       const summary = await generateFinalSummary(decisions, messages, agents);
       setFinalSummary(summary);
       setStep('summary');
     } catch (err) {
       console.error(err);
-      setStep('active');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -94,22 +99,15 @@ const App: React.FC = () => {
       </button>
 
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'flex' : 'hidden'} lg:flex lg:w-80 w-full bg-[#0f1117] border-r border-slate-800 p-6 flex-col gap-6 overflow-y-auto z-40`}>
+      <div className={`${sidebarOpen ? 'flex' : 'hidden'} lg:flex lg:w-80 w-full bg-[#0f1117] border-r border-slate-800 p-6 flex-col gap-6 overflow-y-auto z-40 transition-all duration-300`}>
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
           <h1 className="text-xl font-bold tracking-tighter text-white">TIMESPLIT</h1>
         </div>
 
         {step === 'onboarding' ? (
           <div className="flex-1 flex flex-col justify-center text-slate-500 text-sm italic">
             <p className="animate-pulse">Awaiting neural data...</p>
-          </div>
-        ) : step === 'simulating' ? (
-          <div className="flex-1 flex flex-col justify-center space-y-4">
-             <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-500 w-1/2 animate-[loading_1.5s_ease-in-out_infinite]"></div>
-             </div>
-             <p className="text-[10px] text-blue-400 font-mono animate-pulse uppercase tracking-[0.3em]">Mapping Futures</p>
           </div>
         ) : (
           <>
@@ -125,7 +123,7 @@ const App: React.FC = () => {
                 </div>
               </div>
             )}
-            {step === 'active' && (
+            {step === 'active' && !isProcessing && (
               <button onClick={handleFinish} className="mt-auto px-4 py-2 text-xs font-bold text-slate-400 hover:text-white border border-slate-800 hover:border-blue-500 rounded-lg transition-all group">
                 Collapse Timeline <span className="group-hover:translate-x-1 inline-block transition-transform">→</span>
               </button>
@@ -140,16 +138,6 @@ const App: React.FC = () => {
           <div className="flex-1 overflow-y-auto scroll-smooth">
             <Onboarding onComplete={handleOnboardingComplete} />
           </div>
-        ) : step === 'simulating' ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent">
-            <div className="relative w-32 h-32 mb-8">
-              <div className="absolute inset-0 border-2 border-blue-500/20 rounded-full"></div>
-              <div className="absolute inset-0 border-t-2 border-blue-500 rounded-full animate-spin"></div>
-              <div className="absolute inset-4 border-l-2 border-purple-500 rounded-full animate-spin [animation-duration:2s]"></div>
-            </div>
-            <h2 className="text-3xl font-bold gradient-text mb-4">Synthesizing Realities</h2>
-            <p className="text-slate-500 max-w-sm text-sm font-mono uppercase tracking-widest opacity-60">Initializing Divergent Anchors...</p>
-          </div>
         ) : step === 'summary' ? (
           <div className="flex-1 overflow-y-auto p-6 md:p-12 bg-[#0a0a0c]">
             <div className="max-w-3xl mx-auto bg-slate-900/30 border border-slate-800 p-8 rounded-3xl shadow-2xl animate-in fade-in zoom-in duration-500">
@@ -163,16 +151,22 @@ const App: React.FC = () => {
             </div>
           </div>
         ) : (
-          <ChatInterface messages={messages} onSendMessage={handleSendMessage} isTyping={isTyping} agents={agents} />
+          <div className="flex-1 relative flex flex-col overflow-hidden">
+            {isProcessing && (
+              <div className="absolute inset-0 z-30 bg-[#0a0a0c]/80 backdrop-blur-sm flex flex-col items-center justify-center p-12 text-center">
+                <div className="relative w-32 h-32 mb-8">
+                  <div className="absolute inset-0 border-2 border-blue-500/20 rounded-full"></div>
+                  <div className="absolute inset-0 border-t-2 border-blue-500 rounded-full animate-spin"></div>
+                  <div className="absolute inset-4 border-l-2 border-purple-500 rounded-full animate-spin [animation-duration:2s]"></div>
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Synthesizing Realities</h2>
+                <p className="text-slate-500 text-sm font-mono uppercase tracking-widest opacity-60">Initializing Divergent Anchors...</p>
+              </div>
+            )}
+            <ChatInterface messages={messages} onSendMessage={handleSendMessage} isTyping={isTyping} agents={agents} />
+          </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes loading {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
-        }
-      `}</style>
     </div>
   );
 };
