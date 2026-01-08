@@ -7,10 +7,10 @@ import AgentCard from './components/AgentCard';
 import TimelineView from './components/TimelineView';
 import ChatInterface from './components/ChatInterface';
 import StatsTracker from './components/StatsTracker';
+import SimulationScreen from './components/SimulationScreen';
 
 const App: React.FC = () => {
-  const [step, setStep] = useState<'onboarding' | 'active' | 'summary'>('onboarding');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [step, setStep] = useState<'onboarding' | 'launching' | 'active' | 'summary'>('onboarding');
   const [decisions, setDecisions] = useState<LifeDecision[]>([]);
   const [agents, setAgents] = useState<FutureAgent[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -21,40 +21,40 @@ const App: React.FC = () => {
 
   const handleOnboardingComplete = async (userDecisions: LifeDecision[]) => {
     setDecisions(userDecisions);
-    setIsProcessing(true);
-    setStep('active'); // Go to main UI immediately
+    setStep('launching'); 
     
     try {
-      // Step 1: Generate the agent data (Text only for speed)
       const generated = await generateAgents(userDecisions);
-      if (!generated || generated.length === 0) throw new Error("No agents generated");
+      if (!generated || generated.length === 0) throw new Error("Synthesis Failed");
       
       setAgents(generated);
       setActiveAgentId(generated[0].id);
-      setIsProcessing(false);
-
-      // Step 2: Kick off background image generation for each agent
-      generated.forEach(async (agent) => {
-        try {
-          const imageUrl = await generateAgentImage(agent);
-          setAgents(prev => prev.map(a => 
-            a.id === agent.id ? { ...a, imageUrl } : a
-          ));
-        } catch (imgErr) {
-          console.error(`Failed to generate image for agent ${agent.id}`, imgErr);
-        }
-      });
+      
+      // Delay to allow the transition animation to be smooth
+      setTimeout(() => {
+        setStep('active');
+        
+        generated.forEach(async (agent) => {
+          try {
+            const imageUrl = await generateAgentImage(agent);
+            setAgents(prev => prev.map(a => 
+              a.id === agent.id ? { ...a, imageUrl } : a
+            ));
+          } catch (err) {
+            console.warn(`Portrait synthesis failed for ${agent.name}`);
+          }
+        });
+      }, 2000);
 
     } catch (err) {
       console.error(err);
-      alert("Temporal instability detected. Please retry.");
+      alert("Neural instability detected. Resetting interface...");
       setStep('onboarding');
-      setIsProcessing(false);
     }
   };
 
   const handleSendMessage = async (text: string) => {
-    if (!text.trim() || isTyping || isProcessing) return;
+    if (!text.trim() || isTyping) return;
     const userMsg: Message = { id: Date.now().toString(), sender: 'user', content: text, timestamp: Date.now() };
     setMessages(prev => [...prev, userMsg]);
     setIsTyping(true);
@@ -72,15 +72,14 @@ const App: React.FC = () => {
   };
 
   const handleFinish = async () => {
-    setIsProcessing(true);
+    setStep('launching'); 
     try {
       const summary = await generateFinalSummary(decisions, messages, agents);
       setFinalSummary(summary);
-      setStep('summary');
+      setTimeout(() => setStep('summary'), 1000);
     } catch (err) {
       console.error(err);
-    } finally {
-      setIsProcessing(false);
+      setStep('active');
     }
   };
 
@@ -88,44 +87,56 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden lg:flex-row bg-[#0a0a0c]">
-      {/* Mobile Toggle */}
+      {/* Mobile Sidebar Toggle */}
       <button 
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden absolute top-4 right-4 z-50 p-2 bg-slate-900 border border-slate-800 rounded-full"
+        className="lg:hidden absolute top-4 right-4 z-50 p-3 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-slate-400">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-blue-500">
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
         </svg>
       </button>
 
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'flex' : 'hidden'} lg:flex lg:w-80 w-full bg-[#0f1117] border-r border-slate-800 p-6 flex-col gap-6 overflow-y-auto z-40 transition-all duration-300`}>
+      <div className={`${sidebarOpen ? 'flex' : 'hidden'} lg:flex lg:w-80 w-full bg-[#0f1117] border-r border-slate-800 p-6 flex-col gap-6 overflow-y-auto z-40 transition-all duration-500 shadow-[20px_0_40px_rgba(0,0,0,0.5)]`}>
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
-          <h1 className="text-xl font-bold tracking-tighter text-white">TIMESPLIT</h1>
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 to-purple-600 shadow-[0_0_20px_rgba(59,130,246,0.4)]"></div>
+          <h1 className="text-xl font-black tracking-tighter text-white uppercase italic">TimeSplit</h1>
         </div>
 
-        {step === 'onboarding' ? (
-          <div className="flex-1 flex flex-col justify-center text-slate-500 text-sm italic">
-            <p className="animate-pulse">Awaiting neural data...</p>
+        {step === 'onboarding' || step === 'launching' ? (
+          <div className="flex-1 flex flex-col justify-center gap-4">
+            <div className={`p-4 rounded-2xl border border-slate-800 bg-slate-900/50 ${step === 'launching' ? 'animate-pulse' : ''}`}>
+              <div className="w-8 h-1 bg-blue-500/30 rounded-full mb-3 overflow-hidden">
+                <div className={`h-full bg-blue-500 transition-all duration-1000 ${step === 'launching' ? 'w-full' : 'w-1/4'}`}></div>
+              </div>
+              <p className="text-[10px] text-slate-500 font-mono leading-relaxed uppercase tracking-wider">
+                {step === 'onboarding' ? 'Neural profile integration required' : 'Syncing divergent pathways...'}
+              </p>
+            </div>
           </div>
         ) : (
           <>
             <TimelineView agents={agents} activeAgentId={activeAgentId} onSelectAgent={setActiveAgentId} />
             {activeAgent && (
               <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-left-4 duration-500">
-                <div className="pt-6 border-t border-slate-800">
-                  <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Trajectory</h3>
+                <div className="pt-6 border-t border-slate-800/50">
+                  <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-4 flex justify-between">
+                    Temporal Status <span className="text-blue-500/50">STABLE</span>
+                  </h3>
                   <StatsTracker stats={activeAgent.stats} />
                 </div>
-                <div className="pt-6 border-t border-slate-800">
+                <div className="pt-6 border-t border-slate-800/50">
                   <AgentCard agent={activeAgent} />
                 </div>
               </div>
             )}
-            {step === 'active' && !isProcessing && (
-              <button onClick={handleFinish} className="mt-auto px-4 py-2 text-xs font-bold text-slate-400 hover:text-white border border-slate-800 hover:border-blue-500 rounded-lg transition-all group">
-                Collapse Timeline <span className="group-hover:translate-x-1 inline-block transition-transform">→</span>
+            {step === 'active' && (
+              <button 
+                onClick={handleFinish} 
+                className="mt-auto px-4 py-3 text-[10px] font-bold text-slate-500 hover:text-white border border-slate-800 hover:border-blue-500/50 hover:bg-blue-500/5 rounded-xl transition-all group uppercase tracking-widest"
+              >
+                Terminate Session <span className="group-hover:translate-x-1 inline-block transition-transform ml-2">→</span>
               </button>
             )}
           </>
@@ -138,33 +149,33 @@ const App: React.FC = () => {
           <div className="flex-1 overflow-y-auto scroll-smooth">
             <Onboarding onComplete={handleOnboardingComplete} />
           </div>
+        ) : step === 'launching' ? (
+          <SimulationScreen />
         ) : step === 'summary' ? (
           <div className="flex-1 overflow-y-auto p-6 md:p-12 bg-[#0a0a0c]">
-            <div className="max-w-3xl mx-auto bg-slate-900/30 border border-slate-800 p-8 rounded-3xl shadow-2xl animate-in fade-in zoom-in duration-500">
-              <h1 className="text-4xl font-bold mb-8 gradient-text">Timeline Finality</h1>
-              <div className="prose prose-invert prose-blue max-w-none mb-12 leading-relaxed text-slate-300 text-lg">
+            <div className="max-w-3xl mx-auto bg-slate-900/30 border border-slate-800 p-8 md:p-12 rounded-[2rem] shadow-2xl animate-in fade-in zoom-in duration-700">
+              <div className="flex items-center gap-4 mb-10">
+                <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
+                <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase">Synthesis Complete</h1>
+              </div>
+              <div className="prose prose-invert prose-blue max-w-none mb-12 leading-relaxed text-slate-300 text-lg font-light">
                 {finalSummary}
               </div>
-              <button onClick={() => window.location.reload()} className="px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-bold transition-all transform hover:scale-[1.02] shadow-xl shadow-blue-900/20">
-                New Identity
+              <button 
+                onClick={() => window.location.reload()} 
+                className="px-12 py-5 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest transition-all transform hover:scale-[1.03] shadow-[0_20px_40px_rgba(37,99,235,0.2)]"
+              >
+                Return to Origin
               </button>
             </div>
           </div>
         ) : (
-          <div className="flex-1 relative flex flex-col overflow-hidden">
-            {isProcessing && (
-              <div className="absolute inset-0 z-30 bg-[#0a0a0c]/80 backdrop-blur-sm flex flex-col items-center justify-center p-12 text-center">
-                <div className="relative w-32 h-32 mb-8">
-                  <div className="absolute inset-0 border-2 border-blue-500/20 rounded-full"></div>
-                  <div className="absolute inset-0 border-t-2 border-blue-500 rounded-full animate-spin"></div>
-                  <div className="absolute inset-4 border-l-2 border-purple-500 rounded-full animate-spin [animation-duration:2s]"></div>
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Synthesizing Realities</h2>
-                <p className="text-slate-500 text-sm font-mono uppercase tracking-widest opacity-60">Initializing Divergent Anchors...</p>
-              </div>
-            )}
-            <ChatInterface messages={messages} onSendMessage={handleSendMessage} isTyping={isTyping} agents={agents} />
-          </div>
+          <ChatInterface 
+            messages={messages} 
+            onSendMessage={handleSendMessage} 
+            isTyping={isTyping} 
+            agents={agents} 
+          />
         )}
       </div>
     </div>
