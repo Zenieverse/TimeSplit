@@ -8,6 +8,8 @@ This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/d5eafbf7-d2eb-42a1-bfbc-1521fc9aeb76
 
+or https://timesplit-future-self-simulator-764082783379.us-west1.run.app
+
 ## Run Locally
 
 **Prerequisites:**  Node.js
